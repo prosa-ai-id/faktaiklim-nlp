@@ -1,0 +1,15 @@
+## Deployment
+
+### Docker
+
+- `Dockerfile`: Used to build the climate API image.
+- `docker-compose.yml`: Docker Compose configuration for the climate API.
+- `docker-compose-qdrant.yml`: Docker Compose configuration for Qdrant (vector database).
+- `docker-compose-onnx`: Model serving compose for all models.
+
+To run the ONNX model serving compose on server 4:
+
+```bash
+cd /srv/nas_data2/text/miftah/giz_climate_2/serving/onnx_image_with_feature_extraction
+docker-compose up
+```

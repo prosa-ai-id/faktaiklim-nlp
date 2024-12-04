@@ -1,0 +1,14 @@
+{
+	"relevant_items": [
+		{
+			"title": "Eropa dilanda pemadaman listrik, kelangkaan air dan gelombang panas",
+			"content": "Brussel (ANTARA) - Gelombang panas yang terjadi secara kontinu di Eropa selatan..",
+			"url": "https://www.antaranews.com/berita/4226195/eropa-dilanda-pemadaman-listrik-kelangkaan-air-dan-gelombang-panas",
+			"score": 0.658671,
+			"stance": "support",
+			"hoax_status": "fact"
+		},
+		..
+	],
+	"hoax_probability": 0.5
+}

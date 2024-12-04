@@ -1,0 +1,99 @@
+x-common-variables: &climate-env
+  - API_KEY=ebce2698dadf0593c979a2798c84e49a0
+  - HOAX_COLLECTION_NAME=climate_hoax
+  - FACT_COLLECTION_NAME=climate_fact
+  - QDRANT_HOST=qdrant
+  - QDRANT_PORT=6333
+  - TOPN=10
+  - EMBEDDING_SERVING_URL=http://doc-emb/forward
+  - STANCE_SERVING_URL=http://stance-cls/forward
+  - TOPIC_SERVING_URL=http://topic-cls/forward
+  - SUBTOPIC_SERVING_URL=http://subtopic-cls/forward
+
+services:
+  climate-api:
+    image: registry.gitlab.prosa.ai/prosa-ai/nlp/giz/giz-climate-api:0.1.11
+    container_name: climate-api
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+        max_attempts: 5
+    ports:
+      - 8091:8091
+    volumes:
+      - ./logs:/app/logs
+    environment: *climate-env
+    command: bash -c "fastapi run --port 8091"
+    networks:
+      - giz
+
+  qdrant:
+    image: qdrant/qdrant:v1.7.3
+    ports:
+      - "6333:6333"
+    volumes:
+      - ./data/qdrant:/qdrant/storage
+    networks:
+      - giz
+
+  # AI models related
+  doc-emb:
+    image: registry.gitlab.prosa.ai/prosa-ai/nlp/runner-api/onnx:0.1.0
+    volumes:
+     - /srv/nas_data2/text/miftah/giz_climate_2/bert/bert_lm_ns2_L24_S256:/app/models
+    ports:
+      - 8895:80
+    environment:
+      - LOG_DIR=/app/logs
+      - ONNX_MODEL_NAME=${ONNX_MODEL_NAME:-model.onnx}
+      - MAX_SEQ_LENGTH=${MAX_SEQ_LENGTH:-256}
+    command: uvicorn serve:app --host 0.0.0.0 --port 80 --timeout-keep-alive 1000
+    networks:
+      - giz
+
+  stance-cls:
+    image: registry.gitlab.prosa.ai/prosa-ai/nlp/runner-api/onnx:0.1.0
+    volumes:
+     - /srv/nas_data2/text/miftah/giz_climate_2/stance/v4/reg_stance_v4/bert/bert_lm_ns2_L24_S256:/app/models
+    ports:
+      - 8896:80
+    environment:
+      - LOG_DIR=/app/logs
+      - ONNX_MODEL_NAME=${ONNX_MODEL_NAME:-model.onnx}
+      - MAX_SEQ_LENGTH=${MAX_SEQ_LENGTH:-256}
+    command: uvicorn serve:app --host 0.0.0.0 --port 80 --timeout-keep-alive 1000
+    networks:
+      - giz
+
+  topic-cls:
+    image: registry.gitlab.prosa.ai/prosa-ai/nlp/runner-api/onnx:0.1.0
+    volumes:
+     - /srv/nas_data2/text/miftah/giz_climate_2/topic/topic_multilabel_v3/bert/bert_lm_ns2_L24_S256:/app/models
+    ports:
+      - 8897:80
+    environment:
+      - LOG_DIR=/app/logs
+      - ONNX_MODEL_NAME=${ONNX_MODEL_NAME:-model.onnx}
+      - MAX_SEQ_LENGTH=${MAX_SEQ_LENGTH:-256}
+    command: uvicorn serve:app --host 0.0.0.0 --port 80 --timeout-keep-alive 1000
+    networks:
+      - giz
+
+  subtopic-cls:
+    image: registry.gitlab.prosa.ai/prosa-ai/nlp/runner-api/onnx:0.1.0
+    volumes:
+     - /srv/nas_data2/text/miftah/giz_climate_2/subtopic_multilabel_v3/bert/bert_lm_ns2_L24_S256:/app/models
+    ports:
+      - 8898:80
+    environment:
+      - LOG_DIR=/app/logs
+      - ONNX_MODEL_NAME=${ONNX_MODEL_NAME:-model.onnx}
+      - MAX_SEQ_LENGTH=${MAX_SEQ_LENGTH:-256}
+    command: uvicorn serve:app --host 0.0.0.0 --port 80 --timeout-keep-alive 1000
+    networks:
+      - giz
+
+networks:
+  giz:
+    external: true
